@@ -1,0 +1,6 @@
+{
+  "layerUrls": ["https://tiles.arcgis.com/tiles/QUg4M9ZDNdUHdQcy/arcgis/rest/services/202206_Arbor_Hills_SnifferDRONE_CH4_Change/MapServer", 
+    "https://tiles.arcgis.com/tiles/QUg4M9ZDNdUHdQcy/arcgis/rest/services/202206_Arbor_Hills_SnifferDRONE_CH4_Interpolation/MapServer", 
+    "https://tiles.arcgis.com/tiles/QUg4M9ZDNdUHdQcy/arcgis/rest/services/202205_Arbor_Hills_SnifferDRONE_CH4_Change/MapServer"],
+  "dataBaseUrl": "/Users/apple/Desktop/python/internship/web_vue/"
+}
