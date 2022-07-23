@@ -17,11 +17,22 @@
         <el-input placeholder="input password" v-model="password" show-password style="width: 220px" size="small"></el-input>
       </div>
       <div class="infoBox">
-        <span class="preLabel">File Path: </span>
+        <el-upload
+            class="MDupload"
+            ref="MDupload"
+            action="#"
+            :auto-upload="false"
+            :limit="1"
+            :on-exceed="exceedWarning"
+            :on-change="readMetaData"
+            :on-remove="clearMetaData">
+            <el-button slot="trigger" size="small" type="primary">Select metadata</el-button>
+          </el-upload>
+        <!-- <span class="preLabel">File Path: </span>
         <el-input placeholder="input project path"
                   v-model="projectPath" show-password
                   style="width: 220px" size="small"
-                  @blur="processMetaData"></el-input>
+                  @blur="processMetaData"></el-input> -->
       </div>
       <span slot="footer" class="dialog-footer">
         <el-button @click="connectToAGOL">Connect to Arcgis Online</el-button>
@@ -42,6 +53,7 @@
 import TableContent from './components/TableContent.vue'
 import TopBar from './components/TopBar.vue'
 import L from 'leaflet'
+import mapInfo from './jsTools/mapInfo.js'
 
 const esri = require("esri-leaflet");
 const tokenURL = "https://www.arcgis.com/sharing/rest/generateToken"
@@ -59,49 +71,131 @@ export default {
       stillInLogin: true,
       username: "",
       password: "",
-      projectPath: "",
+      localDB: "",
+      // AGOL feature urls.
+      metaData: [],
+      // list with references to the layers.
+      myLayers: [],
 
-      // map info
-      totalLayerList: [],
+      // initial map info
       map: undefined,
-      zoom: 14,
+      zoom: 15,
       center: [42.401090, -83.557090],
-
-      // initial layer info
       url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-      featureUrl: "https://tiles.arcgis.com/tiles/QUg4M9ZDNdUHdQcy/arcgis/rest/services/202206_Arbor_Hills_SnifferDRONE_CH4_Change/MapServer",
     }
   },
 
   methods: {
     connectToAGOL(e) {
-      e.preventDefault();
-      var self = this;
-      this.serverAuth(tokenURL, this.username, this.password, function(error, response) {
-        if (error) {
-          self.$notify.error({
-            title: 'Error',
-            message: error.details[0]
-          });
-        } else {
-          self.stillInLogin = false;
-          self.$notify({
-            title: 'Success',
-            message: 'Hello, ' + self.username,
-            type: 'success'
-          });
-          esri.tiledMapLayer({
-            url: self.featureUrl,
-            minZoom: 10,
-            maxZoom: 19,
-            token: response.token
-          }).addTo(self.map);
-        }
-      });
+      if (this.metaData.length == 0)
+      {
+        this.$notify.error({
+          title: 'Error',
+          message: "Project file is empty or invalid"
+        });
+      }
+      else
+      {
+        // 1, pass database path to flask.
+        // Create new sqlite if not exist. Load data back if there is data inside sqlite.
+        // sample geoJson format: {name: xxx, geometry: {"type": "Polygon", "coordinates": []}}
+        var jsonInput = {
+            "type": "Polygon",
+            "coordinates": [
+              [
+                [
+                  -83.56849193572998,
+                  42.39554091720936
+                ],
+                [
+                  -83.55626106262207,
+                  42.39344912341609
+                ],
+                [
+                  -83.55681896209717,
+                  42.397727717992005
+                ],
+                [
+                  -83.56849193572998,
+                  42.39554091720936
+                ]
+              ]
+            ]
+          };
+        var newGeoJson = new mapInfo({name: "testJson", geometry: jsonInput});
+        newGeoJson.addToMap(this.map);
+        this.myLayers.push(newGeoJson);
+
+
+
+        // 2, authentication and push required WMS in metaData.
+        e.preventDefault();
+        var self = this;
+        this.serverAuth(tokenURL, this.username, this.password, function(error, response) {
+          if (error)
+          {
+            self.$notify.error({
+              title: 'Error',
+              message: error.details[0]
+            });
+          }
+          else
+          {
+            for (let i = 0; i < self.metaData.length; i++)
+            {
+              // url error checking ?
+              var newInput = esri.tiledMapLayer({
+                url: self.metaData[i],
+                minZoom: 10,
+                maxZoom: 19,
+                token: response.token
+              });
+              var newLayer = new mapInfo(newInput);
+              newLayer.addToMap(self.map);
+              self.myLayers.push(newLayer);
+            }
+            self.$notify({
+              title: 'Success',
+              message: 'Hello, ' + self.username,
+              type: 'success'
+            });
+            self.metaData.length = 0;
+          }
+        });
+      }
+      // 3, close the dialog and clear the metaData array.
+      this.stillInLogin = false;
     },
 
-    processMetaData() {
+    connectToDB() {
+      // const response = fetch(window.location)
+    },
 
+    readMetaData(file) {
+      let self = this;
+      let reader = new FileReader();
+      reader.readAsText(file.raw);
+      reader.onload = function() {
+        let data = JSON.parse(reader.result);
+        // key error checking.
+        self.localDB = data["dataBasePath"];
+        for (let i = 0; i < data["List of Layers and types"].length; i++)
+        {
+          self.metaData.push(data["List of Layers and types"][i][0]);
+        }
+      }
+    },
+
+    clearMetaData() {
+      this.metaData.length = 0;
+    },
+
+    exceedWarning() {
+      this.$notify({
+        title: 'Warning',
+        message: 'There can only be 1 project file',
+        type: 'warning'
+      });
     },
 
     serverAuth (server, username, password, callback) {
@@ -152,5 +246,9 @@ export default {
 .preLabel {
   padding-top: 6px;
   margin-right: 5px;
+}
+
+.MDupload {
+  margin-top: 10px;
 }
 </style>

@@ -32,7 +32,7 @@
 </template>
 
 <script>
-import geoJsonInfo from '../jsTools/mapInfo.js'
+import layerInfo from '../jsTools/mapInfo.js'
 
 export default {
   name: 'TopBar',
@@ -83,7 +83,6 @@ export default {
         var newData = new geoJsonInfo(this.fileNameList[i], true, 0, this.allDataUploaded[i]);
         this.$parent.totalLayerList.push(newData);
       }
-      debugger;
       this.$parent.center = this.$parent.totalLayerList[0].center;
       this.addVisible = false;
       console.log(this.$parent.map);

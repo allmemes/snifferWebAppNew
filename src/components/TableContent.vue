@@ -8,20 +8,20 @@
         @row-dblclick="recenter">
         <el-table-column
           label="Content"
-          width="230"
+          width="240"
           show-overflow-tooltip>
           <template slot-scope="scope">
             <span>{{ scope.row.name }}</span>
           </template>
         </el-table-column>
         <el-table-column
-          width="80">
+          width="75">
           <template slot-scope="scope">
-            <el-checkbox v-model="scope.row.visible"></el-checkbox>
+            <el-checkbox v-model="scope.row.visible" @change="showLayer(scope.row)"></el-checkbox>
             <el-button
             size="mini"
             type="danger"
-            style="margin-left: 5px;"
+            style="margin-left: 5px; width: 30px"
             @click="handleDelete(scope.$index)">X</el-button>
           </template>
         </el-table-column>
@@ -36,16 +36,36 @@ export default {
   name: 'TableContent',
   data () {
     return {
-      tableData: this.$parent.totalLayerList,
+      tableData: this.$parent.myLayers,
      }
   },
 
   methods: {
     recenter(row, column, cell, event) {
-      this.$parent.center = row.center;
+      debugger;
+      if (row.center)
+      {
+        this.$parent.map.setView(row.center);
+      }
+    },
+
+    showLayer(row) {
+      debugger;
+      // var self = this;
+      if (row.visible)
+      {
+        row.show();
+        // row.removeFromMap();
+        // row.addToMap(self.$parent.map);
+      }
+      else
+      {
+        row.hide();
+      }
     },
 
     handleDelete(index) {
+      this.tableData[index].removeFromMap();
       this.tableData.splice(index, 1);
     },
   }
