@@ -96,39 +96,6 @@ export default {
       }
       else
       {
-        // 1, pass database path to flask.
-        // Create new sqlite if not exist. Load data back if there is data inside sqlite.
-        // sample geoJson format: {name: xxx, geometry: {"type": "Polygon", "coordinates": []}}
-        var jsonInput = {
-            "type": "Polygon",
-            "coordinates": [
-              [
-                [
-                  -83.56849193572998,
-                  42.39554091720936
-                ],
-                [
-                  -83.55626106262207,
-                  42.39344912341609
-                ],
-                [
-                  -83.55681896209717,
-                  42.397727717992005
-                ],
-                [
-                  -83.56849193572998,
-                  42.39554091720936
-                ]
-              ]
-            ]
-          };
-        var newGeoJson = new mapInfo({name: "testJson", geometry: jsonInput});
-        newGeoJson.addToMap(this.map);
-        this.myLayers.push(newGeoJson);
-
-
-
-        // 2, authentication and push required WMS in metaData.
         e.preventDefault();
         var self = this;
         this.serverAuth(tokenURL, this.username, this.password, function(error, response) {
@@ -154,21 +121,46 @@ export default {
               newLayer.addToMap(self.map);
               self.myLayers.push(newLayer);
             }
+            // load into local database and fetch all data.
+            self.connectToDB();
             self.$notify({
               title: 'Success',
               message: 'Hello, ' + self.username,
               type: 'success'
             });
             self.metaData.length = 0;
+            self.stillInLogin = false;
           }
         });
       }
-      // 3, close the dialog and clear the metaData array.
-      this.stillInLogin = false;
     },
 
     connectToDB() {
-      // const response = fetch(window.location)
+      var self = this;
+      const requestOptions = {
+        method: "post",
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: JSON.stringify({"DBpath": this.localDB})
+      };
+      fetch("http://127.0.0.1:5000/accessDB", requestOptions)
+        .then(response => response.json())
+        .then(data => {
+          console.log(data["buffer_polygon_test"]);
+          if (Object.keys(data).length === 0){
+            window.alert("You created a new local database or you have no data in the old one");
+          }
+          else {
+            for (var key in data) {
+              var attributes = JSON.parse(data[key].replaceAll("'", '"'));
+              var newGeoJson = new mapInfo({name: key, geometry: attributes});
+              newGeoJson.addToMap(self.map);
+              self.myLayers.push(newGeoJson);
+            }
+          }
+        });
     },
 
     readMetaData(file) {
@@ -216,7 +208,7 @@ export default {
     zoom: this.zoom});
     L.tileLayer(this.url,
     {attribution:'&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'}).addTo(this.map);
-  }
+  },
 }
 </script>
 

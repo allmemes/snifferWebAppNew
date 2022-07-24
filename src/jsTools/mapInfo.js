@@ -18,8 +18,16 @@ export default class layerInfo {
     if (inputObject.geometry)
     {
       var center = [];
-      center.push(inputObject.geometry.coordinates[0][0][1]);
-      center.push(inputObject.geometry.coordinates[0][0][0]);
+      if (inputObject.geometry.coordinates[0][0][1])
+      {
+        center.push(inputObject.geometry.coordinates[0][0][1]);
+        center.push(inputObject.geometry.coordinates[0][0][0]);
+      }
+      else
+      {
+        center.push(inputObject.geometry.coordinates[0][1]);
+        center.push(inputObject.geometry.coordinates[0][0]);
+      }
       this.center = center;
     }
     else
