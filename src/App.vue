@@ -28,11 +28,6 @@
             :on-remove="clearMetaData">
             <el-button slot="trigger" size="small" type="primary">Select metadata</el-button>
           </el-upload>
-        <!-- <span class="preLabel">File Path: </span>
-        <el-input placeholder="input project path"
-                  v-model="projectPath" show-password
-                  style="width: 220px" size="small"
-                  @blur="processMetaData"></el-input> -->
       </div>
       <span slot="footer" class="dialog-footer">
         <el-button @click="connectToAGOL">Connect to Arcgis Online</el-button>
@@ -72,6 +67,7 @@ export default {
       username: "",
       password: "",
       localDB: "",
+      defaultBuffer: undefined,
       // AGOL feature urls.
       metaData: [],
       // list with references to the layers.
@@ -87,11 +83,12 @@ export default {
 
   methods: {
     connectToAGOL(e) {
+      // check if input metaData Json format is problematic.
       if (this.metaData.length == 0)
       {
         this.$notify.error({
           title: 'Error',
-          message: "Project file is empty or invalid"
+          message: "Project json is empty or invalid"
         });
       }
       else
@@ -108,6 +105,7 @@ export default {
           }
           else
           {
+            // Do the authentication and save the layers first.
             for (let i = 0; i < self.metaData.length; i++)
             {
               // url error checking ?
@@ -118,18 +116,11 @@ export default {
                 token: response.token
               });
               var newLayer = new mapInfo(newInput);
-              newLayer.addToMap(self.map);
+              // only save the layer list but not show them.
               self.myLayers.push(newLayer);
             }
-            // load into local database and fetch all data.
-            self.connectToDB();
-            self.$notify({
-              title: 'Success',
-              message: 'Hello, ' + self.username,
-              type: 'success'
-            });
-            self.metaData.length = 0;
-            self.stillInLogin = false;
+            // Access local database and fetch all data second.
+            self.connectToDB()
           }
         });
       }
@@ -148,17 +139,45 @@ export default {
       fetch("http://127.0.0.1:5000/accessDB", requestOptions)
         .then(response => response.json())
         .then(data => {
-          console.log(data["buffer_polygon_test"]);
-          if (Object.keys(data).length === 0){
-            window.alert("You created a new local database or you have no data in the old one");
+          if (data.error)
+          {
+            self.$notify.error({
+              title: 'Error',
+              message: "The database you created previously is missing"
+            });
+            // clear the layer list after authentication if local database is missing.
+            self.myLayers.length = 0;
           }
           else {
-            for (var key in data) {
-              var attributes = JSON.parse(data[key].replaceAll("'", '"'));
-              var newGeoJson = new mapInfo({name: key, geometry: attributes});
-              newGeoJson.addToMap(self.map);
-              self.myLayers.push(newGeoJson);
+            // reaching here means local data added properly or the database is empty.
+            if (Object.keys(data).length === 0){
+              self.$notify({
+                title: 'Warning',
+                message: 'It is an empty database',
+                type: 'warning'
+              });
             }
+            else
+            {
+              for (var key in data) {
+                var attributes = JSON.parse(data[key].replaceAll("'", '"'));
+                var newGeoJson = new mapInfo({name: key, geometry: attributes});
+                newGeoJson.addToMap(self.map);
+                self.myLayers.push(newGeoJson);
+              }
+            }
+            // only after local database is working properly can we render the authenticated maps and finish then entire click event.
+            for (let i = 0; i < self.myLayers.length; i++)
+            {
+              self.myLayers[i].addToMap(self.map);
+            }
+            self.metaData.length = 0;
+            self.stillInLogin = false;
+            self.$notify({
+              title: 'Success',
+              message: 'Hello, ' + self.username,
+              type: 'success'
+            });
           }
         });
     },
@@ -171,6 +190,7 @@ export default {
         let data = JSON.parse(reader.result);
         // key error checking.
         self.localDB = data["dataBasePath"];
+        self.defaultBuffer = data["Default Buffer Radius"];
         for (let i = 0; i < data["List of Layers and types"].length; i++)
         {
           self.metaData.push(data["List of Layers and types"][i][0]);

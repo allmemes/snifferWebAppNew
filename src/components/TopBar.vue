@@ -7,9 +7,11 @@
                   :modal-append-to-body="false"
                 class="dialog" title="Upload data from local computer"
                 @close="clearAddedData">
+
           <!-- uploader -->
           <el-upload
             class="upload"
+            style="width:300px"
             ref="upload"
             action="#"
             :auto-upload="false"
@@ -18,6 +20,25 @@
             <el-button slot="trigger" size="medium" type="primary">Select files</el-button>
             <el-button style="margin-left: 10px;" size="medium" type="success" @click="insertLayers">Add to current map</el-button>
           </el-upload>
+          <!-- buffer table -->
+          <el-table
+            v-if="bufferList.length !== 0"
+            empty-text="..."
+            :data="bufferList"
+            id="bufferList"
+            :cell-style="{padding: '2px', height: '20px'}">
+             <el-table-column width="65">
+              <template slot-scope="scope">
+                <span>buffer:</span>
+              </template>
+            </el-table-column>
+            <el-table-column width="60">
+              <template slot-scope="scope">
+                <input :value="scope.row" size="mini" style="height: 19.2px; width:25px"/>
+              </template>
+            </el-table-column>
+          </el-table>
+
       </el-dialog>
 
     <!-- 2, upload button and pop up window -->
@@ -43,6 +64,7 @@ export default {
       uploadVisible: false,
 
       // clear during remove? ->fileList.
+      bufferList: [],
       allDataUploaded: [] ,
       fileNameList: [],
      }
@@ -54,27 +76,12 @@ export default {
       let self = this;
       let reader = new FileReader();
 
-      // if (this.containsDuplicates(this.fileNameList))
-      // {
-      //   this.$message({
-      //     message: 'Warning, this is a duplicated GeoJson.',
-      //     type: 'warning'
-      //   });
-      // }
-      // else
-      // {
-      //   reader.readAsText(file.raw);
-      //   reader.onload = function() {
-      //     let data = JSON.parse(reader.result);
-      //     self.allDataUploaded.push(data);
-      //   }
-      // }
-
       reader.readAsText(file.raw);
       reader.onload = function() {
         let data = JSON.parse(reader.result);
         self.allDataUploaded.push(data);
       }
+      this.bufferList.push(this.$parent.defaultBuffer);
     },
 
     insertLayers() {
@@ -99,11 +106,14 @@ export default {
       this.$refs.upload.clearFiles();
       this.allDataUploaded.length = 0;
       this.fileNameList.length = 0;
+      this.bufferList.length = 0;
     },
 
     removeFile(file, fileList) {
       var position = this.fileNameList.indexOf(file.name);
       this.fileNameList.splice(position, 1);
+
+      this.bufferList.splice(position, 1);
     }
   }
 }
@@ -135,10 +145,10 @@ export default {
 }
 
 .dialog {
-  width: 100vh;
+  width: 140vh;
   position: absolute;
   top: 100px;
-  left: 35%;
+  left: 20%;
   overflow: visible;
 }
 
@@ -148,5 +158,12 @@ export default {
   right: 30px;
   padding: 10px;
   border-radius: 10px;
+}
+
+#bufferList {
+  position: absolute;
+  width: 28%;
+  right: 10px;
+  top: 86px;
 }
 </style>
