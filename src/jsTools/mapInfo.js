@@ -1,32 +1,31 @@
 import L from 'leaflet'
 
 export default class layerInfo {
-  constructor(inputObject) {
-    if (inputObject.options)
+  constructor(name, inputObject, DBtable) {
+    // possible bug: geojson without a name!!!
+    if (name)
     {
-      this.name = inputObject.options.url.split("/").at(-3);
-      // tilelayer object. {options: {}, functions: {}}
+      this.name = name;
     }
     else
     {
-      this.name = inputObject.name;
-      // geoJson: {name: xxx, geometry: {"type": "Polygon", "coordinates": []}}
+      this.name = inputObject.options.url.split("/").at(-3);
     }
 
     this.visible = true;
 
-    if (inputObject.geometry)
+    if (inputObject.coordinates)
     {
       var center = [];
-      if (inputObject.geometry.coordinates[0][0][1])
+      if (inputObject.coordinates[0][0][1])
       {
-        center.push(inputObject.geometry.coordinates[0][0][1]);
-        center.push(inputObject.geometry.coordinates[0][0][0]);
+        center.push(inputObject.coordinates[0][0][1]);
+        center.push(inputObject.coordinates[0][0][0]);
       }
       else
       {
-        center.push(inputObject.geometry.coordinates[0][1]);
-        center.push(inputObject.geometry.coordinates[0][0]);
+        center.push(inputObject.coordinates[0][1]);
+        center.push(inputObject.coordinates[0][0]);
       }
       this.center = center;
     }
@@ -35,17 +34,26 @@ export default class layerInfo {
       this.center = undefined;
     }
 
-    if (inputObject.geometry)
+    if (inputObject.coordinates)
     {
       var geoJsonStruct = {
       "type": "FeatureCollection",
       "features": [{"type": "Feature", "properties": {}}]};
-      geoJsonStruct.features[0]["geometry"] = inputObject.geometry;
+      geoJsonStruct.features[0]["geometry"] = inputObject;
       this.layerObject = L.geoJSON(geoJsonStruct);
     }
     else
     {
       this.layerObject = inputObject;
+    }
+
+    if (DBtable)
+    {
+      this.DBtable = DBtable;
+    }
+    else
+    {
+      this.DBtable = undefined;
     }
   }
 
@@ -54,8 +62,23 @@ export default class layerInfo {
   }
 
   removeFromMap() {
+    debugger;
     this.layerObject.remove();
-    console.log("Will need to be deleted from database");
+    if (this.DBtable)
+    {
+      fetch("http://127.0.0.1:5000/delete/" + this.DBtable + "/" + this.name, { method: "delete" })
+        .then(response => response.json())
+        .then(data => {
+          if (data["status"] === 200)
+          {
+            console.log("Delete from database success");
+          }
+          else
+          {
+            console.log("Delete from database fail");
+          }
+        })
+    }
   }
 
   show() {

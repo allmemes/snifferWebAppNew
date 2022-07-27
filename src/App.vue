@@ -115,7 +115,7 @@ export default {
                 maxZoom: 19,
                 token: response.token
               });
-              var newLayer = new mapInfo(newInput);
+              var newLayer = new mapInfo(undefined, newInput, undefined);
               // only save the layer list but not show them.
               self.myLayers.push(newLayer);
             }
@@ -160,10 +160,15 @@ export default {
             else
             {
               for (var key in data) {
-                var attributes = JSON.parse(data[key].replaceAll("'", '"'));
-                var newGeoJson = new mapInfo({name: key, geometry: attributes});
-                newGeoJson.addToMap(self.map);
-                self.myLayers.push(newGeoJson);
+                var tableName = key;
+                for (var key2 in data[key])
+                {
+                  var name = key2;
+                  var dataObject = JSON.parse(data[key][key2].replaceAll("'", '"'));
+                  var newGeoJson = new mapInfo(name, dataObject, tableName);
+                  newGeoJson.addToMap(self.map);
+                  self.myLayers.push(newGeoJson);
+                }
               }
             }
             // only after local database is working properly can we render the authenticated maps and finish then entire click event.
@@ -190,7 +195,7 @@ export default {
         let data = JSON.parse(reader.result);
         // key error checking.
         self.localDB = data["dataBasePath"];
-        self.defaultBuffer = data["Default Buffer Radius"];
+        self.defaultBuffer = parseInt(data["Default Buffer Radius"]);
         for (let i = 0; i < data["List of Layers and types"].length; i++)
         {
           self.metaData.push(data["List of Layers and types"][i][0]);

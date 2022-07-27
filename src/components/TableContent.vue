@@ -41,8 +41,7 @@ export default {
   },
 
   methods: {
-    recenter(row, column, cell, event) {
-      debugger;
+    recenter(row) {
       if (row.center)
       {
         this.$parent.map.setView(row.center);
@@ -50,7 +49,6 @@ export default {
     },
 
     showLayer(row) {
-      debugger;
       // var self = this;
       if (row.visible)
       {

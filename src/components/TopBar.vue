@@ -7,7 +7,6 @@
                   :modal-append-to-body="false"
                 class="dialog" title="Upload data from local computer"
                 @close="clearAddedData">
-
           <!-- uploader -->
           <el-upload
             class="upload"
@@ -16,7 +15,7 @@
             action="#"
             :auto-upload="false"
             :on-change="addFile"
-            :on-remove="removeFile">
+            :before-remove="removeFile">
             <el-button slot="trigger" size="medium" type="primary">Select files</el-button>
             <el-button style="margin-left: 10px;" size="medium" type="success" @click="insertLayers">Add to current map</el-button>
           </el-upload>
@@ -27,18 +26,17 @@
             :data="bufferList"
             id="bufferList"
             :cell-style="{padding: '2px', height: '20px'}">
-             <el-table-column width="65">
+             <el-table-column width="85">
               <template slot-scope="scope">
-                <span>buffer:</span>
+                <span>buffer(m):</span>
               </template>
             </el-table-column>
             <el-table-column width="60">
               <template slot-scope="scope">
-                <input :value="scope.row" size="mini" style="height: 19.2px; width:25px"/>
+                <input v-model="scope.row" style="height: 19.2px; width:25px" @change="updateBuffer(scope)"/>
               </template>
             </el-table-column>
           </el-table>
-
       </el-dialog>
 
     <!-- 2, upload button and pop up window -->
@@ -53,7 +51,6 @@
 </template>
 
 <script>
-import layerInfo from '../jsTools/mapInfo.js'
 
 export default {
   name: 'TopBar',
@@ -63,36 +60,47 @@ export default {
       addVisible: false,
       uploadVisible: false,
 
-      // clear during remove? ->fileList.
+      // uploaded files.
       bufferList: [],
-      allDataUploaded: [] ,
-      fileNameList: [],
+      fileNames: new Set(),
      }
   },
 
   methods: {
-    addFile(file, fileList) {
-      this.fileNameList.push(file.name);
-      let self = this;
-      let reader = new FileReader();
+    updateBuffer(scope) {
+      this.bufferList[scope.$index] = parseInt(scope.row);
+    },
 
-      reader.readAsText(file.raw);
-      reader.onload = function() {
-        let data = JSON.parse(reader.result);
-        self.allDataUploaded.push(data);
+    addFile(file, fileList) {
+      if (this.fileNames.has(file.name))
+      {
+        this.$message({
+          message: 'Dupicated files.',
+          type: 'warning'
+        });
+        fileList.splice(fileList.indexOf(file), 1);
       }
-      this.bufferList.push(this.$parent.defaultBuffer);
+      else
+      {
+        this.fileNames.add(file.name);
+        this.bufferList.push(this.$parent.defaultBuffer);
+      }
     },
 
     insertLayers() {
-      for (var i = 0; i < this.allDataUploaded.length; i++)
-      {
-        var newData = new geoJsonInfo(this.fileNameList[i], true, 0, this.allDataUploaded[i]);
-        this.$parent.totalLayerList.push(newData);
-      }
-      this.$parent.center = this.$parent.totalLayerList[0].center;
-      this.addVisible = false;
-      console.log(this.$parent.map);
+      console.log(this.$refs.upload.uploadFiles);
+      console.log(this.bufferList);
+
+      // send name, bufferdistance, and data to backend.
+      // this.fileNameList.push(file.name);
+      // let self = this;
+      // let reader = new FileReader();
+
+      // reader.readAsText(file.raw);
+      // reader.onload = function() {
+      //   let data = JSON.parse(reader.result);
+      //   self.allDataUploaded.push(data);
+      // }
     },
 
     containsDuplicates(array) {
@@ -104,16 +112,14 @@ export default {
 
     clearAddedData() {
       this.$refs.upload.clearFiles();
-      this.allDataUploaded.length = 0;
-      this.fileNameList.length = 0;
+      this.fileNames.clear();
       this.bufferList.length = 0;
     },
 
     removeFile(file, fileList) {
-      var position = this.fileNameList.indexOf(file.name);
-      this.fileNameList.splice(position, 1);
-
+      var position = fileList.indexOf(file);
       this.bufferList.splice(position, 1);
+      this.fileNames.delete(file.name);
     }
   }
 }
