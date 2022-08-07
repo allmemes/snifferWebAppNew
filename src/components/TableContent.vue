@@ -1,6 +1,5 @@
 <template>
   <div id="Table">
-    <template>
       <el-table
         :data="tableData"
         style="width: 100%"
@@ -26,8 +25,6 @@
           </template>
         </el-table-column>
       </el-table>
-    </template>
-
   </div>
 </template>
 
@@ -73,8 +70,9 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 #Table {
-  flex: 0 0 20%;
+  flex: 0 0 310px;
   z-index: 1000;
+  overflow: auto;
 }
 
 #bufferBox {

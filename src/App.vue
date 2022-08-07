@@ -195,7 +195,7 @@ export default {
         let data = JSON.parse(reader.result);
         // key error checking.
         self.localDB = data["dataBasePath"];
-        self.defaultBuffer = parseInt(data["Default Buffer Radius"]);
+        self.defaultBuffer = data["Default Buffer Radius"];
         for (let i = 0; i < data["List of Layers and types"].length; i++)
         {
           self.metaData.push(data["List of Layers and types"][i][0]);

@@ -44,8 +44,8 @@
     <!-- pop up -->
     <el-dialog :visible.sync="uploadVisible"
                 :modal-append-to-body="false"
-              class="dialog" title="Merge current data and save">This is for uploading.
-
+              class="dialog" title="Merge current data and save">
+              This is for uploading.
     </el-dialog>
   </div>
 </template>
@@ -68,7 +68,7 @@ export default {
 
   methods: {
     updateBuffer(scope) {
-      this.bufferList[scope.$index] = parseInt(scope.row);
+      this.bufferList[scope.$index] = scope.row;
     },
 
     addFile(file, fileList) {
@@ -88,26 +88,26 @@ export default {
     },
 
     insertLayers() {
-      console.log(this.$refs.upload.uploadFiles);
-      console.log(this.bufferList);
+      // console.log(this.bufferList);
+      debugger;
+      var form = new FormData();
+      var bufferText = this.bufferList.toString();
+      form.append("bufferText", bufferText);
 
-      // send name, bufferdistance, and data to backend.
-      // this.fileNameList.push(file.name);
-      // let self = this;
-      // let reader = new FileReader();
-
-      // reader.readAsText(file.raw);
-      // reader.onload = function() {
-      //   let data = JSON.parse(reader.result);
-      //   self.allDataUploaded.push(data);
-      // }
-    },
-
-    containsDuplicates(array) {
-      if (array.length !== new Set(array).size) {
-        return true;
+      var uploadedFiles = this.$refs.upload.uploadFiles;
+      for (let i = 0; i < uploadedFiles.length; i++)
+      {
+        form.append(uploadedFiles[i].name, uploadedFiles[i].raw);
       }
-      return false;
+
+      fetch('http://127.0.0.1:5000/buffer', {
+        method: 'POST',
+        body: form
+      }).then(response => response.json()).then(data => {
+        console.log(data);
+
+        this.addVisible = false;
+      });
     },
 
     clearAddedData() {

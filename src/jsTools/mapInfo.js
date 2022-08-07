@@ -71,11 +71,11 @@ export default class layerInfo {
         .then(data => {
           if (data["status"] === 200)
           {
-            console.log("Delete from database success");
+            window.alert("Delete from database success");
           }
           else
           {
-            console.log("Delete from database fail");
+            window.alert("Delete from database fail");
           }
         })
     }
