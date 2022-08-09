@@ -62,6 +62,10 @@ export default {
     handleDelete(index) {
       this.tableData[index].removeFromMap();
       this.tableData.splice(index, 1);
+      if (this.tableData[index].DBtable)
+      {
+        this.$parent.uploadedNames.delete(this.tableData[index].name);
+      }
     },
   }
 }

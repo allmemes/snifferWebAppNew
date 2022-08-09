@@ -38,7 +38,7 @@
     <!-- content view on the left -->
     <TableContent/>
     <!-- map itself -->
-    <div id='MapView'></div>
+    <div id='MapView' v-loading="loading"></div>
     <!-- top button bar -->
     <TopBar/>
   </div>
@@ -74,10 +74,12 @@ export default {
       myLayers: [],
 
       // initial map info
+      loading: false,
       map: undefined,
       zoom: 15,
       center: [42.401090, -83.557090],
       url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      uploadedNames: new Set(),
     }
   },
 
@@ -164,6 +166,7 @@ export default {
                 for (var key2 in data[key])
                 {
                   var name = key2;
+                  self.uploadedNames.add(name);
                   var dataObject = JSON.parse(data[key][key2].replaceAll("'", '"'));
                   var newGeoJson = new mapInfo(name, dataObject, tableName);
                   newGeoJson.addToMap(self.map);

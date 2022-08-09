@@ -72,24 +72,39 @@ export default {
     },
 
     addFile(file, fileList) {
-      if (this.fileNames.has(file.name))
+      // clean file name
+      var name = this.tellCsvType(file.name);
+      if (this.$parent.uploadedNames.has(name))
       {
         this.$message({
-          message: 'Dupicated files.',
+          message: 'File already added.',
           type: 'warning'
         });
         fileList.splice(fileList.indexOf(file), 1);
       }
       else
       {
-        this.fileNames.add(file.name);
-        this.bufferList.push(this.$parent.defaultBuffer);
+        if (this.fileNames.has(file.name))
+        {
+          this.$message({
+            message: 'Dupicated files.',
+            type: 'warning'
+          });
+          fileList.splice(fileList.indexOf(file), 1);
+        }
+        else
+        {
+          this.fileNames.add(file.name);
+          this.bufferList.push(this.$parent.defaultBuffer);
+        }
       }
     },
 
     insertLayers() {
       // console.log(this.bufferList);
       debugger;
+      this.$parent.loading = true;
+      var self = this;
       var form = new FormData();
       var bufferText = this.bufferList.toString();
       form.append("bufferText", bufferText);
@@ -97,7 +112,10 @@ export default {
       var uploadedFiles = this.$refs.upload.uploadFiles;
       for (let i = 0; i < uploadedFiles.length; i++)
       {
-        form.append(uploadedFiles[i].name, uploadedFiles[i].raw);
+        // clean the name
+        var name = this.tellCsvType(uploadedFiles[i].name);
+        form.append(name, uploadedFiles[i].raw);
+        this.$parent.uploadedNames.add(name);
       }
 
       fetch('http://127.0.0.1:5000/buffer', {
@@ -105,8 +123,11 @@ export default {
         body: form
       }).then(response => response.json()).then(data => {
         console.log(data);
+        // receive data, add to map, insert into table list
 
-        this.addVisible = false;
+
+        self.$parent.loading = false;
+        self.addVisible = false;
       });
     },
 
@@ -120,6 +141,18 @@ export default {
       var position = fileList.indexOf(file);
       this.bufferList.splice(position, 1);
       this.fileNames.delete(file.name);
+    },
+
+    tellCsvType(csvName) {
+      var nameList = csvName.split("_");
+      if (nameList.length == 4)
+      {
+        return nameList[3].split(".")[0];
+      }
+      else
+      {
+        return nameList[0] + "_" + nameList[1] + "_" + nameList[4].split(".")[0];
+      }
     }
   }
 }
