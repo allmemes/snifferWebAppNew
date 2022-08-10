@@ -166,7 +166,7 @@ export default {
                 for (var key2 in data[key])
                 {
                   var name = key2;
-                  self.uploadedNames.add(name);
+                  self.uploadedNames.add(name.split("-")[0]);
                   var dataObject = JSON.parse(data[key][key2].replaceAll("'", '"'));
                   var newGeoJson = new mapInfo(name, dataObject, tableName);
                   newGeoJson.addToMap(self.map);

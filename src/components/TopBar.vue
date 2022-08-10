@@ -51,6 +51,7 @@
 </template>
 
 <script>
+import mapInfo from '../jsTools/mapInfo.js'
 
 export default {
   name: 'TopBar',
@@ -102,7 +103,6 @@ export default {
 
     insertLayers() {
       // console.log(this.bufferList);
-      debugger;
       this.$parent.loading = true;
       var self = this;
       var form = new FormData();
@@ -122,10 +122,20 @@ export default {
         method: 'POST',
         body: form
       }).then(response => response.json()).then(data => {
-        console.log(data);
         // receive data, add to map, insert into table list
-
-
+        debugger;
+        for (var key in data)
+        {
+          var tableName = key;
+          for (var key2 in data[key])
+          {
+            var name = key2;
+            var dataObject = JSON.parse(data[key][key2].replaceAll("'", '"'));
+            var newGeoJson = new mapInfo(name, dataObject, tableName);
+            newGeoJson.addToMap(self.$parent.map);
+            self.$parent.myLayers.push(newGeoJson);
+          }
+        }
         self.$parent.loading = false;
         self.addVisible = false;
       });
@@ -151,7 +161,7 @@ export default {
       }
       else
       {
-        return nameList[0] + "_" + nameList[1] + "_" + nameList[4].split(".")[0];
+        return nameList[0] + "_" + nameList[1] + "_" + nameList[2];
       }
     }
   }

@@ -14,18 +14,27 @@ export default class layerInfo {
 
     this.visible = true;
 
-    if (inputObject.coordinates)
+    if (inputObject.type)
     {
       var center = [];
-      if (inputObject.coordinates[0][0][1])
+      if (inputObject.type[0] == "M")
+      {
+        center.push(inputObject.coordinates[0][0][0][1]);
+        center.push(inputObject.coordinates[0][0][0][0]);
+      }
+      else if (inputObject.type[0] == "P")
       {
         center.push(inputObject.coordinates[0][0][1]);
         center.push(inputObject.coordinates[0][0][0]);
       }
-      else
+      else if (inputObject.type[0] == "L")
       {
         center.push(inputObject.coordinates[0][1]);
         center.push(inputObject.coordinates[0][0]);
+      }
+      else
+      {
+        center = undefined;
       }
       this.center = center;
     }
@@ -62,7 +71,6 @@ export default class layerInfo {
   }
 
   removeFromMap() {
-    debugger;
     this.layerObject.remove();
     if (this.DBtable)
     {

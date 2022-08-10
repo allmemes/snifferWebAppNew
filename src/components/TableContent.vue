@@ -61,11 +61,12 @@ export default {
 
     handleDelete(index) {
       this.tableData[index].removeFromMap();
-      this.tableData.splice(index, 1);
+      debugger;
       if (this.tableData[index].DBtable)
       {
-        this.$parent.uploadedNames.delete(this.tableData[index].name);
+        this.$parent.uploadedNames.delete(this.tableData[index].name.split("-")[0]);
       }
+      this.tableData.splice(index, 1);
     },
   }
 }
