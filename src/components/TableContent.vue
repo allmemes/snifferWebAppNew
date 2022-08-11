@@ -46,12 +46,9 @@ export default {
     },
 
     showLayer(row) {
-      // var self = this;
       if (row.visible)
       {
         row.show();
-        // row.removeFromMap();
-        // row.addToMap(self.$parent.map);
       }
       else
       {
@@ -61,7 +58,6 @@ export default {
 
     handleDelete(index) {
       this.tableData[index].removeFromMap();
-      debugger;
       if (this.tableData[index].DBtable)
       {
         this.$parent.uploadedNames.delete(this.tableData[index].name.split("-")[0]);

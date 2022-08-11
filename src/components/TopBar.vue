@@ -102,22 +102,27 @@ export default {
     },
 
     insertLayers() {
-      // console.log(this.bufferList);
+      // ui control
       this.$parent.loading = true;
       var self = this;
+
+      // data transfer variables
+      var emptyFiles = "";
       var form = new FormData();
+
+      // load data onto form.
       var bufferText = this.bufferList.toString();
       form.append("bufferText", bufferText);
-
       var uploadedFiles = this.$refs.upload.uploadFiles;
       for (let i = 0; i < uploadedFiles.length; i++)
       {
-        // clean the name
+        // clean file name
         var name = this.tellCsvType(uploadedFiles[i].name);
         form.append(name, uploadedFiles[i].raw);
         this.$parent.uploadedNames.add(name);
       }
 
+      // send form to back end.
       fetch('http://127.0.0.1:5000/buffer', {
         method: 'POST',
         body: form
@@ -127,14 +132,33 @@ export default {
         for (var key in data)
         {
           var tableName = key;
-          for (var key2 in data[key])
+          if (Object.keys(data[key]).length !== 0)
           {
-            var name = key2;
-            var dataObject = JSON.parse(data[key][key2].replaceAll("'", '"'));
-            var newGeoJson = new mapInfo(name, dataObject, tableName);
-            newGeoJson.addToMap(self.$parent.map);
-            self.$parent.myLayers.push(newGeoJson);
+            for (var key2 in data[key])
+            {
+              var name = key2;
+              if (data[key][key2])
+              {
+                var dataObject = JSON.parse(data[key][key2].replaceAll("'", '"'));
+                var newGeoJson = new mapInfo(name, dataObject, tableName);
+                newGeoJson.addToMap(self.$parent.map);
+                self.$parent.myLayers.push(newGeoJson);
+              }
+              else
+              {
+                emptyFiles = emptyFiles + name.split("-")[0] + ", ";
+              }
+            }
           }
+        }
+        if (emptyFiles.length > 0)
+        {
+          var warn = emptyFiles.slice(0, -2);
+          self.$notify({
+            title: 'Warning',
+            message: "No peaks created for " + warn,
+            type: 'warning'
+          });
         }
         self.$parent.loading = false;
         self.addVisible = false;

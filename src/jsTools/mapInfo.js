@@ -14,27 +14,18 @@ export default class layerInfo {
 
     this.visible = true;
 
-    if (inputObject.type)
+    if (inputObject.coordinates)
     {
       var center = [];
-      if (inputObject.type[0] == "M")
-      {
-        center.push(inputObject.coordinates[0][0][0][1]);
-        center.push(inputObject.coordinates[0][0][0][0]);
-      }
-      else if (inputObject.type[0] == "P")
+      if (inputObject.coordinates[0][0][1])
       {
         center.push(inputObject.coordinates[0][0][1]);
         center.push(inputObject.coordinates[0][0][0]);
       }
-      else if (inputObject.type[0] == "L")
+      else
       {
         center.push(inputObject.coordinates[0][1]);
         center.push(inputObject.coordinates[0][0]);
-      }
-      else
-      {
-        center = undefined;
       }
       this.center = center;
     }
