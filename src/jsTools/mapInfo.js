@@ -2,7 +2,7 @@ import L from 'leaflet'
 
 export default class layerInfo {
   constructor(name, inputObject, DBtable) {
-    // possible bug: geojson without a name!!!
+    // possible bug: geojson without a name?
     if (name)
     {
       this.name = name;
@@ -14,10 +14,15 @@ export default class layerInfo {
 
     this.visible = true;
 
-    if (inputObject.coordinates)
+    if (inputObject.type)
     {
       var center = [];
-      if (inputObject.coordinates[0][0][1])
+      if (inputObject.type[0] === "M")
+      {
+        center.push(inputObject.coordinates[0][0][0][1]);
+        center.push(inputObject.coordinates[0][0][0][0]);
+      }
+      else if (inputObject.type[0] === "P")
       {
         center.push(inputObject.coordinates[0][0][1]);
         center.push(inputObject.coordinates[0][0][0]);

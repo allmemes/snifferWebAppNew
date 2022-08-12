@@ -43,6 +43,10 @@ export default {
       {
         this.$parent.map.setView(row.center);
       }
+      if (!row.center)
+      {
+        row.layerObject.bringToFront();
+      }
     },
 
     showLayer(row) {

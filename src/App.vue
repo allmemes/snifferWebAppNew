@@ -110,7 +110,6 @@ export default {
             // Do the authentication and save the layers first.
             for (let i = 0; i < self.metaData.length; i++)
             {
-              // url error checking ?
               var newInput = esri.tiledMapLayer({
                 url: self.metaData[i],
                 minZoom: 10,
@@ -232,10 +231,12 @@ export default {
 
   mounted() {
     this.map = L.map("MapView", {
-    center: this.center,
-    zoom: this.zoom});
+    // center: this.center,
+    zoom: this.zoom
+    });
     L.tileLayer(this.url,
     {attribution:'&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'}).addTo(this.map);
+    this.map.locate({setView : true, maxZoom : this.zoom});
   },
 }
 </script>
