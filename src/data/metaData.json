@@ -2,12 +2,18 @@
   "UTM Zone": 16,
   "Time Zone": "EST",
   "Project Name": "test",
-  "List of Layers and types": [
-    ["https://tiles.arcgis.com/tiles/QUg4M9ZDNdUHdQcy/arcgis/rest/services/202206_Arbor_Hills_SnifferDRONE_CH4_Change/MapServer", "type1"],
-    ["https://tiles.arcgis.com/tiles/QUg4M9ZDNdUHdQcy/arcgis/rest/services/202206_Arbor_Hills_SnifferDRONE_CH4_Interpolation/MapServer", "type2"],
-    ["https://tiles.arcgis.com/tiles/QUg4M9ZDNdUHdQcy/arcgis/rest/services/202205_Arbor_Hills_SnifferDRONE_CH4_Change/MapServer", "type3"]
-  ],
-  "Inspection Type": "unknown",
+  "List of Layers and types": {
+    "asbuilt": "https://tiles.arcgis.com/tiles/QUg4M9ZDNdUHdQcy/arcgis/rest/services/2020_Q3_Arbor_Hills_As_Built_GCCS_Drawing_Draft/MapServer",
+    "imagery": "https://tiles.arcgis.com/tiles/QUg4M9ZDNdUHdQcy/arcgis/rest/services/Arbor_Hills_2021_12_21_RGB_Ortho/MapServer",
+    "boundary": "https://services6.arcgis.com/QUg4M9ZDNdUHdQcy/arcgis/rest/services/Arbor_Hills_Work_Area/FeatureServer/3",
+    "flightplans": "https://services6.arcgis.com/QUg4M9ZDNdUHdQcy/arcgis/rest/services/202206_Arbor_Hills_SnifferDRONE_Flight_Plan/FeatureServer/14",
+    "dronepoints": null,
+    "dronebuffer": null,
+    "peaks": null,
+    "manualpoints": null,
+    "manualbuffer": null
+  },
+  "Inspection Type": "SnifferDrone",
   "Default Buffer Radius": 15,
   "dataBasePath": "/Users/apple/Desktop/python/internship/web_vue/web_viewer_back/web_app_db.sqlite"
 }

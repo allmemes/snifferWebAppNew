@@ -48,7 +48,9 @@
 import TableContent from './components/TableContent.vue'
 import TopBar from './components/TopBar.vue'
 import L from 'leaflet'
-import mapInfo from './jsTools/mapInfo.js'
+import GeoJsonLayer from './jsTools/GeoJsonLayer.js';
+import TileLayer from './jsTools/TileLayer.js';
+import FeatureLayer from './jsTools/FeatureLayer.js';
 
 const esri = require("esri-leaflet");
 const tokenURL = "https://www.arcgis.com/sharing/rest/generateToken"
@@ -68,8 +70,10 @@ export default {
       password: "",
       localDB: "",
       defaultBuffer: undefined,
-      // AGOL feature urls.
-      metaData: [],
+      // Project file info
+      inspectionType: undefined,
+      fileDict: undefined,
+
       // list with references to the layers.
       myLayers: [],
 
@@ -77,7 +81,7 @@ export default {
       loading: false,
       map: undefined,
       zoom: 15,
-      center: [42.401090, -83.557090],
+      // center: [42.401090, -83.557090],
       url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
       uploadedNames: new Set(),
     }
@@ -85,46 +89,64 @@ export default {
 
   methods: {
     connectToAGOL(e) {
-      // check if input metaData Json format is problematic.
-      if (this.metaData.length == 0)
-      {
-        this.$notify.error({
-          title: 'Error',
-          message: "Project json is empty or invalid"
-        });
-      }
-      else
-      {
-        e.preventDefault();
-        var self = this;
-        this.serverAuth(tokenURL, this.username, this.password, function(error, response) {
-          if (error)
+      e.preventDefault();
+      var self = this;
+      this.serverAuth(tokenURL, this.username, this.password, function(error, response) {
+        if (error)
+        {
+          self.$notify.error({
+            title: 'Error',
+            message: error.details[0]
+          });
+        }
+        else
+        {
+          if (self.fileDict["imagery"])
           {
-            self.$notify.error({
-              title: 'Error',
-              message: error.details[0]
-            });
+            var imagery = esri.tiledMapLayer({
+                url: self.fileDict["imagery"],
+                crossOrigin: true,
+                token: response.token});
+            var imageryLayer = new TileLayer(imagery, "imagery");
+            self.myLayers.push(imageryLayer);
           }
-          else
+          if (self.fileDict["asbuilt"])
           {
-            // Do the authentication and save the layers first.
-            for (let i = 0; i < self.metaData.length; i++)
-            {
-              var newInput = esri.tiledMapLayer({
-                url: self.metaData[i],
-                minZoom: 10,
-                maxZoom: 19,
-                token: response.token
-              });
-              var newLayer = new mapInfo(undefined, newInput, undefined);
-              // only save the layer list but not show them.
-              self.myLayers.push(newLayer);
-            }
-            // Access local database and fetch all data second.
-            self.connectToDB()
+            var asbuilt = esri.tiledMapLayer({
+                url: self.fileDict["asbuilt"],
+                crossOrigin: true,
+                opacity: 0.5,
+                token: response.token});
+            var asbuiltLayer = new TileLayer(asbuilt, "asbuilt");
+            self.myLayers.push(asbuiltLayer);
           }
-        });
-      }
+          if (self.fileDict["flightplans"])
+          {
+            var flightPlan = new esri.FeatureLayer({
+                url: self.fileDict["flightplans"],
+                color: "grey",
+                crossOrigin: true,
+                token: response.token});
+            var flightPlanLayer = new FeatureLayer(flightPlan, "flightplans");
+            self.myLayers.push(flightPlanLayer);
+          }
+          if (self.fileDict["boundary"])
+          {
+            var boundary = new esri.FeatureLayer({
+                url: self.fileDict["boundary"],
+                fillOpacity: 0,
+                opacity: 1,
+                color: "black",
+                weight: 5,
+                crossOrigin: true,
+                token: response.token});
+            var boundaryLayer = new FeatureLayer(boundary, "boundary");
+            self.myLayers.push(boundaryLayer);
+          }
+          // Access local database and fetch all data second.
+          self.connectToDB();
+        }
+      });
     },
 
     connectToDB() {
@@ -165,9 +187,12 @@ export default {
                 for (var key2 in data[key])
                 {
                   var name = key2;
-                  self.uploadedNames.add(name.split("-")[0]);
+                  if (!self.uploadedNames.has(name.split("-")[0]))
+                  {
+                    self.uploadedNames.add(name.split("-")[0]);
+                  }
                   var dataObject = JSON.parse(data[key][key2].replaceAll("'", '"'));
-                  var newGeoJson = new mapInfo(name, dataObject, tableName);
+                  var newGeoJson = new GeoJsonLayer(name, dataObject, tableName);
                   newGeoJson.addToMap(self.map);
                   self.myLayers.push(newGeoJson);
                 }
@@ -178,7 +203,6 @@ export default {
             {
               self.myLayers[i].addToMap(self.map);
             }
-            self.metaData.length = 0;
             self.stillInLogin = false;
             self.$notify({
               title: 'Success',
@@ -195,18 +219,16 @@ export default {
       reader.readAsText(file.raw);
       reader.onload = function() {
         let data = JSON.parse(reader.result);
-        // key error checking.
+        // key error checking?
         self.localDB = data["dataBasePath"];
         self.defaultBuffer = data["Default Buffer Radius"];
-        for (let i = 0; i < data["List of Layers and types"].length; i++)
-        {
-          self.metaData.push(data["List of Layers and types"][i][0]);
-        }
+        self.inspectionType = data["Inspection Type"];
+        self.fileDict = data["List of Layers and types"];
       }
     },
 
     clearMetaData() {
-      this.metaData.length = 0;
+      this.fileDict = undefined;
     },
 
     exceedWarning() {

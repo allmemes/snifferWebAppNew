@@ -52,19 +52,20 @@ export default {
     showLayer(row) {
       if (row.visible)
       {
-        row.show();
+          row.show(this.$parent.map);
       }
       else
       {
-        row.hide();
+          row.hide(this.$parent.map);
       }
     },
 
     handleDelete(index) {
-      this.tableData[index].removeFromMap();
-      if (this.tableData[index].DBtable)
+      var row = this.tableData[index];
+      row.removeFromMap();
+      if (row.DBtable && row.DBtable[0] === "B")
       {
-        this.$parent.uploadedNames.delete(this.tableData[index].name.split("-")[0]);
+        this.$parent.uploadedNames.delete(row.name.split("-")[0]);
       }
       this.tableData.splice(index, 1);
     },

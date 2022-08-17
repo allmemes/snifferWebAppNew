@@ -6,7 +6,8 @@
       <el-dialog :visible.sync="addVisible"
                   :modal-append-to-body="false"
                 class="dialog" title="Upload data from local computer"
-                @close="clearAddedData">
+                @close="clearAddedData"
+                :close-on-click-modal="false">
           <!-- uploader -->
           <el-upload
             class="upload"
@@ -40,18 +41,20 @@
       </el-dialog>
 
     <!-- 2, upload button and pop up window -->
-    <el-button id="upload-data-button" @click="uploadVisible = true">Upload Data To Field Map</el-button>
+    <el-button id="upload-data-button" @click="append">Append Current View and Upload</el-button>
     <!-- pop up -->
-    <el-dialog :visible.sync="uploadVisible"
+    <!-- <el-dialog :visible.sync="uploadVisible"
                 :modal-append-to-body="false"
-              class="dialog" title="Merge current data and save">
+              class="dialog" title="Select layers and append"
+              :close-on-click-modal="false">
               This is for uploading.
-    </el-dialog>
+    </el-dialog> -->
   </div>
 </template>
 
 <script>
-import mapInfo from '../jsTools/mapInfo.js'
+// import mapInfo from '../jsTools/mapInfo.js'
+import GeoJsonLayer from '../jsTools/GeoJsonLayer.js';
 
 export default {
   name: 'TopBar',
@@ -59,7 +62,6 @@ export default {
     return {
       // visible controls
       addVisible: false,
-      uploadVisible: false,
 
       // uploaded files.
       bufferList: [],
@@ -73,30 +75,50 @@ export default {
     },
 
     addFile(file, fileList) {
-      // clean file name
-      var name = this.tellCsvType(file.name);
-      if (this.$parent.uploadedNames.has(name))
-      {
-        this.$message({
-          message: 'File already added.',
-          type: 'warning'
-        });
-        fileList.splice(fileList.indexOf(file), 1);
-      }
-      else
-      {
-        if (this.fileNames.has(file.name))
-        {
-          this.$message({
-            message: 'Dupicated files.',
-            type: 'warning'
-          });
-          fileList.splice(fileList.indexOf(file), 1);
-        }
+      // clean file name nad type check
+      debugger;
+      var self = this;
+      let fileReader = new FileReader();
+      fileReader.readAsText(file.raw);
+      fileReader.onload = function() {
+        var type = fileReader.result[0];
+        if ((type == "I" && self.$parent.inspectionType == "SnifferDrone")
+                ||
+            (type == "T" && self.$parent.inspectionType == "Inficon"))
+            {
+              self.$notify.error({
+                title: 'Error',
+                message: "Incorrect csv type for the current inspection task"
+              });
+              fileList.splice(fileList.indexOf(file), 1);
+            }
         else
         {
-          this.fileNames.add(file.name);
-          this.bufferList.push(this.$parent.defaultBuffer);
+          var inputCsvName = file.name.split(".csv")[0];
+          if (self.$parent.uploadedNames.has(inputCsvName))
+          {
+            self.$message({
+              message: 'File already added.',
+              type: 'warning'
+            });
+            fileList.splice(fileList.indexOf(file), 1);
+          }
+          else
+          {
+            if (self.fileNames.has(file.name))
+            {
+              self.$message({
+                message: 'Dupicated files.',
+                type: 'warning'
+              });
+              fileList.splice(fileList.indexOf(file), 1);
+            }
+            else
+            {
+              self.fileNames.add(file.name);
+              self.bufferList.push(self.$parent.defaultBuffer);
+            }
+          }
         }
       }
     },
@@ -112,14 +134,14 @@ export default {
 
       // load data onto form.
       var bufferText = this.bufferList.toString();
-      form.append("bufferText", bufferText);
+      form.append("bufferText", bufferText + "," + this.$parent.inspectionType[0]);
+
       var uploadedFiles = this.$refs.upload.uploadFiles;
       for (let i = 0; i < uploadedFiles.length; i++)
       {
-        // clean file name
-        var name = this.tellCsvType(uploadedFiles[i].name);
-        form.append(name, uploadedFiles[i].raw);
-        this.$parent.uploadedNames.add(name);
+        var csvName = uploadedFiles[i].name.split(".csv")[0];
+        form.append(csvName, uploadedFiles[i].raw);
+        this.$parent.uploadedNames.add(csvName);
       }
 
       // send form to back end.
@@ -128,7 +150,6 @@ export default {
         body: form
       }).then(response => response.json()).then(data => {
         // receive data, add to map, insert into table list
-        debugger;
         for (var key in data)
         {
           var tableName = key;
@@ -140,7 +161,7 @@ export default {
               if (data[key][key2])
               {
                 var dataObject = JSON.parse(data[key][key2].replaceAll("'", '"'));
-                var newGeoJson = new mapInfo(name, dataObject, tableName);
+                var newGeoJson = new GeoJsonLayer(name, dataObject, tableName);
                 newGeoJson.addToMap(self.$parent.map);
                 self.$parent.myLayers.push(newGeoJson);
               }
@@ -177,17 +198,20 @@ export default {
       this.fileNames.delete(file.name);
     },
 
-    tellCsvType(csvName) {
-      var nameList = csvName.split("_");
-      if (nameList.length == 4)
-      {
-        return nameList[3].split(".")[0];
-      }
-      else
-      {
-        return nameList[0] + "_" + nameList[1] + "_" + nameList[2];
-      }
-    }
+    append()
+    {
+      console.log("this is for appending");
+
+    },
+
+    // async readInput(file) {
+    //   let result = await new Promise((resolve) => {
+    //       let fileReader = new FileReader();
+    //       fileReader.onload = (e) => resolve(fileReader.result);
+    //       fileReader.readAsText(file.raw);
+    //   })
+    //   return result[0];
+    // }
   }
 }
 </script>
@@ -212,7 +236,7 @@ export default {
 #add-data-button  {
   position: absolute;
   top: 20px;
-  right: 240px;
+  right: 290px;
   padding: 10px;
   border-radius: 10px;
 }
