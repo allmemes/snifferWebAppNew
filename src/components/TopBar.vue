@@ -53,7 +53,6 @@
 </template>
 
 <script>
-// import mapInfo from '../jsTools/mapInfo.js'
 import GeoJsonLayer from '../jsTools/GeoJsonLayer.js';
 
 export default {
@@ -66,6 +65,7 @@ export default {
       // uploaded files.
       bufferList: [],
       fileNames: new Set(),
+      parentFileRecorder: this.$parent.fileRecorder,
      }
   },
 
@@ -94,8 +94,8 @@ export default {
             }
         else
         {
-          var inputCsvName = file.name.split(".csv")[0];
-          if (self.$parent.uploadedNames.has(inputCsvName))
+          var inputCsvName = file.name;
+          if (inputCsvName in self.parentFileRecorder)
           {
             self.$message({
               message: 'File already added.',
@@ -134,14 +134,14 @@ export default {
 
       // load data onto form.
       var bufferText = this.bufferList.toString();
-      form.append("bufferText", bufferText + "," + this.$parent.inspectionType[0]);
+      form.append("task", this.$parent.inspectionType[0]);
+      form.append("bufferText", bufferText);
 
       var uploadedFiles = this.$refs.upload.uploadFiles;
       for (let i = 0; i < uploadedFiles.length; i++)
       {
-        var csvName = uploadedFiles[i].name.split(".csv")[0];
+        var csvName = uploadedFiles[i].name;
         form.append(csvName, uploadedFiles[i].raw);
-        this.$parent.uploadedNames.add(csvName);
       }
 
       // send form to back end.
@@ -157,17 +157,25 @@ export default {
           {
             for (var key2 in data[key])
             {
-              var name = key2;
+              var csvKey = key2.split("-")[0];
               if (data[key][key2])
               {
                 var dataObject = JSON.parse(data[key][key2].replaceAll("'", '"'));
-                var newGeoJson = new GeoJsonLayer(name, dataObject, tableName);
+                var newGeoJson = new GeoJsonLayer(key2, dataObject, tableName);
                 newGeoJson.addToMap(self.$parent.map);
                 self.$parent.myLayers.push(newGeoJson);
+                if (csvKey in self.parentFileRecorder)
+                {
+                  self.parentFileRecorder[csvKey] += 1;
+                }
+                else
+                {
+                  self.parentFileRecorder[csvKey] = 1;
+                }
               }
               else
               {
-                emptyFiles = emptyFiles + name.split("-")[0] + ", ";
+                emptyFiles = emptyFiles + csvKey + ", ";
               }
             }
           }
@@ -178,7 +186,8 @@ export default {
           self.$notify({
             title: 'Warning',
             message: "No peaks created for " + warn,
-            type: 'warning'
+            type: 'warning',
+            duration: 0
           });
         }
         self.$parent.loading = false;
@@ -200,18 +209,70 @@ export default {
 
     append()
     {
-      console.log("this is for appending");
+      debugger;
+      // ui control.
+      this.$parent.loading = true;
+      var self = this;
 
+      // prepare appending task form.
+      var form = new FormData();
+
+      // first check what layers have not been appened.
+      var allCurrentLayers = this.$parent.myLayers;
+      var sourceLayerList = [];
+      for (let i = 0; i < allCurrentLayers.length; i++)
+      {
+        if (allCurrentLayers[i].appended == false)
+        {
+          sourceLayerList.push(allCurrentLayers[i].name);
+          allCurrentLayers[i].appended = true;
+        }
+      }
+      if (sourceLayerList.length == 0)
+      {
+        this.$parent.loading = false;
+        this.$notify({
+          title: 'Warning',
+          message: 'All current layers have been appended',
+          type: 'warning'
+        });
+      }
+      else
+      {
+        form.append("sourceLayers", sourceLayerList.toString());
+        form.append("task", this.$parent.inspectionType[0]);
+        form.append("userName", this.$parent.username);
+        form.append("passWord", this.$parent.password);
+        var targetUrls = this.$parent.fileDict;
+        if (this.$parent.inspectionType == "SnifferDrone")
+        {
+          form.append("bufferUrl", targetUrls["dronebuffer"]);
+          form.append("peaksUrl", targetUrls["peaks"]);
+          form.append("pointsUrl", targetUrls["dronepoints"]);
+        }
+        else
+        {
+          form.append("inficonPoints", targetUrls["manualpoints"]);
+          form.append("inficonBuffer", targetUrls["manualbuffer"]);
+        }
+
+        // set request to back end.
+        fetch('http://127.0.0.1:5000/append', {
+          method: 'POST',
+          body: form
+        }).then(response => response.json()).then(data => {
+          if (data)
+          {
+            self.$parent.loading = false;
+            self.$notify({
+                title: 'Success',
+                message: "Appending to field map is finished",
+                type: 'success'
+              });
+          }
+        })
+      }
     },
-
-    // async readInput(file) {
-    //   let result = await new Promise((resolve) => {
-    //       let fileReader = new FileReader();
-    //       fileReader.onload = (e) => resolve(fileReader.result);
-    //       fileReader.readAsText(file.raw);
-    //   })
-    //   return result[0];
-    // }
   }
 }
 </script>

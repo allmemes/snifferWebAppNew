@@ -7,7 +7,7 @@
         @row-dblclick="recenter">
         <el-table-column
           label="Content"
-          width="240"
+          width="260"
           show-overflow-tooltip>
           <template slot-scope="scope">
             <span>{{ scope.row.name }}</span>
@@ -63,9 +63,16 @@ export default {
     handleDelete(index) {
       var row = this.tableData[index];
       row.removeFromMap();
-      if (row.DBtable && row.DBtable[0] === "B")
+      // check csv prefix recorder, remove if all two/three created layers are all removed.
+      var parentFileRecorder = this.$parent.fileRecorder;
+      var rowName = row.name.split("-")[0];
+      if (rowName in parentFileRecorder)
       {
-        this.$parent.uploadedNames.delete(row.name.split("-")[0]);
+        parentFileRecorder[rowName] -= 1;
+        if (parentFileRecorder[rowName] == 0)
+        {
+          delete parentFileRecorder[rowName];
+        }
       }
       this.tableData.splice(index, 1);
     },
@@ -76,7 +83,7 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 #Table {
-  flex: 0 0 310px;
+  flex: 0 0 330px;
   z-index: 1000;
   overflow: auto;
 }

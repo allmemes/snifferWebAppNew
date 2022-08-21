@@ -7,9 +7,9 @@
     "imagery": "https://tiles.arcgis.com/tiles/QUg4M9ZDNdUHdQcy/arcgis/rest/services/Arbor_Hills_2021_12_21_RGB_Ortho/MapServer",
     "boundary": "https://services6.arcgis.com/QUg4M9ZDNdUHdQcy/arcgis/rest/services/Arbor_Hills_Work_Area/FeatureServer/3",
     "flightplans": "https://services6.arcgis.com/QUg4M9ZDNdUHdQcy/arcgis/rest/services/202206_Arbor_Hills_SnifferDRONE_Flight_Plan/FeatureServer/14",
-    "dronepoints": null,
-    "dronebuffer": null,
-    "peaks": null,
+    "dronepoints": "https://services6.arcgis.com/QUg4M9ZDNdUHdQcy/arcgis/rest/services/web_app_test_points/FeatureServer/3",
+    "dronebuffer": "https://services6.arcgis.com/QUg4M9ZDNdUHdQcy/arcgis/rest/services/web_app_test_buffer/FeatureServer/0",
+    "peaks": "https://services6.arcgis.com/QUg4M9ZDNdUHdQcy/arcgis/rest/services/web_app_test_peaks/FeatureServer/2",
     "manualpoints": null,
     "manualbuffer": null
   },

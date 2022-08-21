@@ -83,7 +83,7 @@ export default {
       zoom: 15,
       // center: [42.401090, -83.557090],
       url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-      uploadedNames: new Set(),
+      fileRecorder: {},
     }
   },
 
@@ -176,7 +176,7 @@ export default {
             if (Object.keys(data).length === 0){
               self.$notify({
                 title: 'Warning',
-                message: 'It is an empty database',
+                message: 'You have an empty database',
                 type: 'warning'
               });
             }
@@ -187,9 +187,14 @@ export default {
                 for (var key2 in data[key])
                 {
                   var name = key2;
-                  if (!self.uploadedNames.has(name.split("-")[0]))
+                  var csvKey = name.split("-")[0];
+                  if (csvKey in self.fileRecorder)
                   {
-                    self.uploadedNames.add(name.split("-")[0]);
+                    self.fileRecorder[csvKey] += 1;
+                  }
+                  else
+                  {
+                    self.fileRecorder[csvKey] = 1;
                   }
                   var dataObject = JSON.parse(data[key][key2].replaceAll("'", '"'));
                   var newGeoJson = new GeoJsonLayer(name, dataObject, tableName);
@@ -206,8 +211,9 @@ export default {
             self.stillInLogin = false;
             self.$notify({
               title: 'Success',
-              message: 'Hello, ' + self.username,
-              type: 'success'
+              message: 'Hello, ' + self.username + ". Today's inspection type is " + self.inspectionType,
+              type: 'success',
+              duration: 5000
             });
           }
         });
