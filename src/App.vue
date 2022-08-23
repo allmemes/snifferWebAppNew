@@ -80,8 +80,8 @@ export default {
       // initial map info
       loading: false,
       map: undefined,
+      center: undefined,
       zoom: 15,
-      // center: [42.401090, -83.557090],
       url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
       fileRecorder: {},
     }
@@ -209,6 +209,7 @@ export default {
               self.myLayers[i].addToMap(self.map);
             }
             self.stillInLogin = false;
+            self.map.setView(self.center);
             self.$notify({
               title: 'Success',
               message: 'Hello, ' + self.username + ". Today's inspection type is " + self.inspectionType,
@@ -230,6 +231,7 @@ export default {
         self.defaultBuffer = data["Default Buffer Radius"];
         self.inspectionType = data["Inspection Type"];
         self.fileDict = data["List of Layers and types"];
+        self.center = data["Site Center"];
       }
     },
 
@@ -259,12 +261,11 @@ export default {
 
   mounted() {
     this.map = L.map("MapView", {
-    // center: this.center,
     zoom: this.zoom
     });
     L.tileLayer(this.url,
     {attribution:'&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'}).addTo(this.map);
-    this.map.locate({setView : true, maxZoom : this.zoom});
+    // this.map.locate({setView : true, maxZoom : this.zoom});
   },
 }
 </script>

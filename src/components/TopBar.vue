@@ -41,7 +41,7 @@
       </el-dialog>
 
     <!-- 2, upload button and pop up window -->
-    <el-button id="upload-data-button" @click="append">Append Current View and Upload</el-button>
+    <el-button id="upload-data-button" @click="append">Upload current view to AGOL</el-button>
     <!-- pop up -->
     <!-- <el-dialog :visible.sync="uploadVisible"
                 :modal-append-to-body="false"
@@ -222,10 +222,9 @@ export default {
       var sourceLayerList = [];
       for (let i = 0; i < allCurrentLayers.length; i++)
       {
-        if (allCurrentLayers[i].appended == false)
+        if (allCurrentLayers[i].appendable == true)
         {
           sourceLayerList.push(allCurrentLayers[i].name);
-          allCurrentLayers[i].appended = true;
         }
       }
       if (sourceLayerList.length == 0)
@@ -233,7 +232,7 @@ export default {
         this.$parent.loading = false;
         this.$notify({
           title: 'Warning',
-          message: 'All current layers have been appended',
+          message: 'You do not have any appendable layers',
           type: 'warning'
         });
       }
@@ -264,11 +263,24 @@ export default {
           if (data)
           {
             self.$parent.loading = false;
-            self.$notify({
-                title: 'Success',
-                message: "Appending to field map is finished",
-                type: 'success'
+            if (data["success"].length == 0 && data["fail"].length == 0)
+            {
+              self.$notify({
+                title: 'Warning',
+                message: 'All current layers have been appended',
+                type: 'warning'
               });
+            }
+            else
+            {
+              // success:  fail:
+
+              self.$notify({
+                  title: 'Success',
+                  message: "Appending to field map is finished",
+                  type: 'success'
+                });
+            }
           }
         })
       }
@@ -284,14 +296,6 @@ export default {
   height: 1vh;
   width: 100%;
   z-index: 500;
-}
-
-#merge-data-button {
-  position: absolute;
-  top: 20px;
-  right: 410px;
-  padding: 10px;
-  border-radius: 10px;
 }
 
 #add-data-button  {
@@ -313,7 +317,7 @@ export default {
 #upload-data-button {
   position: absolute;
   top: 20px;
-  right: 30px;
+  right: 45px;
   padding: 10px;
   border-radius: 10px;
 }

@@ -2,6 +2,7 @@
   "UTM Zone": 16,
   "Time Zone": "EST",
   "Project Name": "test",
+  "Site Center": [42.401090, -83.557090],
   "List of Layers and types": {
     "asbuilt": "https://tiles.arcgis.com/tiles/QUg4M9ZDNdUHdQcy/arcgis/rest/services/2020_Q3_Arbor_Hills_As_Built_GCCS_Drawing_Draft/MapServer",
     "imagery": "https://tiles.arcgis.com/tiles/QUg4M9ZDNdUHdQcy/arcgis/rest/services/Arbor_Hills_2021_12_21_RGB_Ortho/MapServer",

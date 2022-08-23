@@ -1,5 +1,6 @@
 <template>
   <div id="Table">
+    <!-- table div -->
       <el-table
         :data="tableData"
         style="width: 100%"
@@ -25,6 +26,22 @@
           </template>
         </el-table-column>
       </el-table>
+      <!-- delete confirm dialog -->
+      <el-dialog
+        id="deleteConfirmBox"
+        title="Warning"
+        :visible="deleteVisible"
+        width="30%"
+        :close-on-click-modal="false"
+        :modal-append-to-body="false"
+        :show-close="false"
+        center>
+        <span>Are you sure you want to delete this layer?</span>
+        <span slot="footer" class="dialog-footer">
+          <el-button @click="deleteVisible = false">Cancel</el-button>
+          <el-button type="primary" @click="deleteLayer()">Confirm</el-button>
+        </span>
+      </el-dialog>
   </div>
 </template>
 
@@ -34,6 +51,8 @@ export default {
   data () {
     return {
       tableData: this.$parent.myLayers,
+      deleteVisible: false,
+      deleteIndex: undefined,
      }
   },
 
@@ -61,8 +80,16 @@ export default {
     },
 
     handleDelete(index) {
+      this.deleteIndex = index;
+      this.deleteVisible = true;
+    },
+
+    deleteLayer()
+    {
+      this.deleteVisible = false;
+      var index = this.deleteIndex;
       var row = this.tableData[index];
-      row.removeFromMap();
+      row.removeFromMap(this);
       // check csv prefix recorder, remove if all two/three created layers are all removed.
       var parentFileRecorder = this.$parent.fileRecorder;
       var rowName = row.name.split("-")[0];
@@ -75,7 +102,7 @@ export default {
         }
       }
       this.tableData.splice(index, 1);
-    },
+    }
   }
 }
 </script>
@@ -91,5 +118,12 @@ export default {
 #bufferBox {
   margin-left: 40px;
   margin-right: 5px;
+}
+
+#deleteConfirmBox {
+  width: 150vh;
+  position: absolute;
+  top: 100px;
+  left: 80px;
 }
 </style>

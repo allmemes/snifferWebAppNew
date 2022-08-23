@@ -5,7 +5,7 @@ export default class GeoJsonLayer
   constructor(name, inputObject, DBtable)
   {
     this.name = name;
-    this.appended = false;
+    this.appendable = true;
     this.visible = true;
 
     var center = [];
@@ -39,18 +39,25 @@ export default class GeoJsonLayer
     this.layerObject.addTo(map);
   }
 
-  removeFromMap() {
+  removeFromMap(parentComponent) {
     this.layerObject.remove();
     fetch("http://127.0.0.1:5000/delete/" + this.DBtable + "/" + this.name, { method: "delete" })
       .then(response => response.json())
       .then(data => {
         if (data["status"] === 200)
         {
-          window.alert("Delete from database success");
+          parentComponent.$notify({
+            title: 'Success',
+            message: 'Delete from database success',
+            type: 'success'
+          });
         }
         else
         {
-          window.alert("Delete from database fail");
+          parentComponent.$notify({
+            title: 'Error',
+            message: "Delete from database fail"
+          });
         }
       })
   }

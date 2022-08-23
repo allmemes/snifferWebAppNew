@@ -12,9 +12,14 @@ export default class FeatureLayer
     this.layerObject.addTo(map);
   }
 
-  removeFromMap() {
+  removeFromMap(parentComponent) {
     this.layerObject.remove();
-    window.alert("Delete success");
+    // window.alert("Delete success");
+    parentComponent.$notify({
+      title: 'Success',
+      message: 'Delete success',
+      type: 'success'
+    });
   }
 
   show(map) {
