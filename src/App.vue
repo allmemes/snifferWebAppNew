@@ -10,11 +10,11 @@
       <!-- input, password and metaData -->
       <div class="infoBox">
         <span class="preLabel">Username: </span>
-        <el-input placeholder="input username" v-model="username" style="width: 220px" size="small"></el-input>
+        <el-input placeholder="input username" v-model="username" style="width: 200px" size="small"></el-input>
       </div>
       <div class="infoBox">
         <span class="preLabel">Password: </span>
-        <el-input placeholder="input password" v-model="password" show-password style="width: 220px" size="small"></el-input>
+        <el-input placeholder="input password" v-model="password" show-password style="width: 200px" size="small"></el-input>
       </div>
       <div class="infoBox">
         <el-upload

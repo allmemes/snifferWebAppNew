@@ -42,13 +42,42 @@
 
     <!-- 2, upload button and pop up window -->
     <el-button id="upload-data-button" @click="append">Upload current view to AGOL</el-button>
-    <!-- pop up -->
-    <!-- <el-dialog :visible.sync="uploadVisible"
-                :modal-append-to-body="false"
-              class="dialog" title="Select layers and append"
-              :close-on-click-modal="false">
-              This is for uploading.
-    </el-dialog> -->
+    <!-- appending result pop up -->
+    <el-dialog :visible.sync="resultVisible"
+              :modal-append-to-body="false"
+              class="resultDialog"
+              :title="title"
+              :close-on-click-modal="false"
+              @close="resultVisible = false">
+              <!-- result collapse items -->
+              <div id="collapseHolder">
+                <div id="collapseBox">
+                  <el-collapse v-model="collapse1">
+                    <el-collapse-item title="Buffer data appending result: " name="2">
+                      <div class="results" v-for="i in bufferSuccess">Success: <span>{{i}}</span></div>
+                      <div class="results" v-for="j in bufferFail">Error: <span>{{j}}</span></div>
+                    </el-collapse-item>
+                    <el-collapse-item title="Points/Path data appending result: " name="1">
+                      <div class="results" v-for="k in points">Finished: <span>{{k}}</span></div>
+                    </el-collapse-item>
+                  </el-collapse>
+                </div>
+                <div id="collapseBox">
+                  <el-collapse v-model="collapse2" id="innerCollapseBox">
+                    <el-collapse-item title="Peaks data appending result: " name="1">
+                      <div class="results" v-for="l in peakSuccess">Success: <span>{{l}}</span></div>
+                      <div class="results" v-for="m in peakFail">Error: <span>{{m}}</span></div>
+                    </el-collapse-item>
+                    <el-collapse-item title="Layers with invalid appending format: " name="2">
+                      <div class="results" v-for="n in invalidJson">Invalid: <span>{{n}}</span></div>
+                    </el-collapse-item>
+                  </el-collapse>
+                </div>
+              </div>
+              <span slot="footer" class="dialog-footer">
+                <el-button type="primary" @click="resultVisible = false">Confirm</el-button>
+              </span>
+    </el-dialog>
   </div>
 </template>
 
@@ -61,6 +90,18 @@ export default {
     return {
       // visible controls
       addVisible: false,
+      resultVisible: false,
+      collapse1: ['1', '2'],
+      collapse2: ['1', '2'],
+      title: undefined,
+
+      // result list for appending.
+      bufferSuccess: undefined,
+      bufferFail: undefined,
+      peakSuccess: undefined,
+      peakFail: undefined,
+      invalidJson: undefined,
+      points: undefined,
 
       // uploaded files.
       bufferList: [],
@@ -262,25 +303,18 @@ export default {
         }).then(response => response.json()).then(data => {
           if (data)
           {
+            debugger;
             self.$parent.loading = false;
-            if (data["success"].length == 0 && data["fail"].length == 0)
-            {
-              self.$notify({
-                title: 'Warning',
-                message: 'All current layers have been appended',
-                type: 'warning'
-              });
-            }
-            else
-            {
-              // success:  fail:
-
-              self.$notify({
-                  title: 'Success',
-                  message: "Appending to field map is finished",
-                  type: 'success'
-                });
-            }
+            self.resultVisible = true;
+            self.title = data["task"] + " Uploading Results";
+            self.bufferSuccess = data["bufferSuccess"];
+            // self.bufferSuccess.push("some_test_failing.csv");
+            self.bufferFail = data["bufferFail"];
+            // self.bufferFail.push("some_test_failing.csv");
+            self.peakSuccess = data["peaksSuccess"];
+            self.peakFail = data["peaksFail"];
+            self.invalidJson = data["invalidJson"];
+            self.points = data["pointsAppended"];
           }
         })
       }
@@ -327,5 +361,35 @@ export default {
   width: 28%;
   right: 10px;
   top: 86px;
+}
+
+.resultDialog {
+  width: 200vh;
+  position: absolute;
+  top: 0px;
+  left: 10%;
+  overflow: visible;
+}
+
+#collapseHolder {
+  width: 100%;
+  display: flex;
+}
+
+#collapseBox {
+  width: 50%;
+  margin-left: 3px;
+  margin-right: 3px;
+  padding-left: 3px;
+  padding-right: 3px;
+  border-color: lightgrey;
+  border-radius: 8px;
+  border-style: solid;
+  border-width: 3px;
+}
+
+.results {
+  color: dimgray;
+  font-size: 13px;
 }
 </style>
