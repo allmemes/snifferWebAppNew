@@ -53,20 +53,20 @@
               <div id="collapseHolder">
                 <div id="collapseBox">
                   <el-collapse v-model="collapse1">
-                    <el-collapse-item title="Buffer data appending result: " name="2">
-                      <div class="results" v-for="i in bufferSuccess">Success: <span>{{i}}</span></div>
-                      <div class="results" v-for="j in bufferFail">Error: <span>{{j}}</span></div>
-                    </el-collapse-item>
                     <el-collapse-item title="Points/Path data appending result: " name="1">
                       <div class="results" v-for="k in points">Finished: <span>{{k}}</span></div>
+                    </el-collapse-item>
+                    <el-collapse-item title="Peaks data appending result: " name="2">
+                      <div class="results" v-for="l in peakSuccess">Success: <span>{{l}}</span></div>
+                      <div class="results" v-for="m in peakFail">Error: <span>{{m}}</span></div>
                     </el-collapse-item>
                   </el-collapse>
                 </div>
                 <div id="collapseBox">
-                  <el-collapse v-model="collapse2" id="innerCollapseBox">
-                    <el-collapse-item title="Peaks data appending result: " name="1">
-                      <div class="results" v-for="l in peakSuccess">Success: <span>{{l}}</span></div>
-                      <div class="results" v-for="m in peakFail">Error: <span>{{m}}</span></div>
+                  <el-collapse v-model="collapse2">
+                    <el-collapse-item title="Buffer data appending result: " name="1">
+                      <div class="results" v-for="i in bufferSuccess">Success: <span>{{i}}</span></div>
+                      <div class="results" v-for="j in bufferFail">Error: <span>{{j}}</span></div>
                     </el-collapse-item>
                     <el-collapse-item title="Layers with invalid appending format: " name="2">
                       <div class="results" v-for="n in invalidJson">Invalid: <span>{{n}}</span></div>
@@ -308,7 +308,7 @@ export default {
             self.resultVisible = true;
             self.title = data["task"] + " Uploading Results";
             self.bufferSuccess = data["bufferSuccess"];
-            // self.bufferSuccess.push("some_test_failing.csv");
+            // self.bufferSuccess.push("92003117_20220718_1307_IRW0027.csv-buffer");
             self.bufferFail = data["bufferFail"];
             // self.bufferFail.push("some_test_failing.csv");
             self.peakSuccess = data["peaksSuccess"];
@@ -341,7 +341,7 @@ export default {
 }
 
 .dialog {
-  width: 140vh;
+  width: 150vh;
   position: absolute;
   top: 100px;
   left: 20%;
@@ -364,10 +364,10 @@ export default {
 }
 
 .resultDialog {
-  width: 200vh;
+  width: 220vh;
   position: absolute;
   top: 0px;
-  left: 10%;
+  left: 5%;
   overflow: visible;
 }
 

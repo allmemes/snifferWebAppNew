@@ -11,10 +11,10 @@
     "dronepoints": "https://services6.arcgis.com/QUg4M9ZDNdUHdQcy/arcgis/rest/services/web_app_test_points/FeatureServer/3",
     "dronebuffer": "https://services6.arcgis.com/QUg4M9ZDNdUHdQcy/arcgis/rest/services/web_app_test_buffer/FeatureServer/0",
     "peaks": "https://services6.arcgis.com/QUg4M9ZDNdUHdQcy/arcgis/rest/services/web_app_test_peaks/FeatureServer/2",
-    "manualpoints": null,
-    "manualbuffer": null
+    "manualpoints": "https://services6.arcgis.com/QUg4M9ZDNdUHdQcy/arcgis/rest/services/test_inficon/FeatureServer/0",
+    "manualbuffer": "https://services6.arcgis.com/QUg4M9ZDNdUHdQcy/arcgis/rest/services/test_inficon_buffer/FeatureServer/8"
   },
-  "Inspection Type": "SnifferDrone",
+  "Inspection Type": "Inficon",
   "Default Buffer Radius": 15,
   "dataBasePath": "/Users/apple/Desktop/python/internship/web_vue/web_viewer_back/web_app_db.sqlite"
 }

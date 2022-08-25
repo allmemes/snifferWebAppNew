@@ -8,7 +8,7 @@
         @row-dblclick="recenter">
         <el-table-column
           label="Content"
-          width="260"
+          width="300"
           show-overflow-tooltip>
           <template slot-scope="scope">
             <span>{{ scope.row.name }}</span>
@@ -110,7 +110,7 @@ export default {
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
 #Table {
-  flex: 0 0 330px;
+  flex: 0 0 370px;
   z-index: 1000;
   overflow: auto;
 }
