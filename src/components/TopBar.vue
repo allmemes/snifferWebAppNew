@@ -225,9 +225,9 @@ export default {
         {
           var warn = emptyFiles.slice(0, -2);
           self.$notify({
-            title: 'Warning',
+            title: 'Information',
             message: "No peaks created for " + warn,
-            type: 'warning',
+            type: 'success',
             duration: 0
           });
         }

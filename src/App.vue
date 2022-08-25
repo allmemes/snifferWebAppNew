@@ -227,7 +227,7 @@ export default {
       reader.onload = function() {
         let data = JSON.parse(reader.result);
         // key error checking?
-        self.localDB = data["dataBasePath"];
+        self.localDB = data["dataBaseName"];
         self.defaultBuffer = data["Default Buffer Radius"];
         self.inspectionType = data["Inspection Type"];
         self.fileDict = data["List of Layers and types"];
