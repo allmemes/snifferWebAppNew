@@ -27,7 +27,7 @@
             :data="bufferList"
             id="bufferList"
             :cell-style="{padding: '2px', height: '20px'}">
-             <el-table-column width="85">
+             <el-table-column width="95">
               <template slot-scope="scope">
                 <span>buffer(m):</span>
               </template>
@@ -341,7 +341,7 @@ export default {
 }
 
 .dialog {
-  width: 150vh;
+  width: 160vh;
   position: absolute;
   top: 100px;
   left: 20%;

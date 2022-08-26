@@ -31,7 +31,7 @@
         id="deleteConfirmBox"
         title="Warning"
         :visible="deleteVisible"
-        width="30%"
+        width="35%"
         :close-on-click-modal="false"
         :modal-append-to-body="false"
         :show-close="false"

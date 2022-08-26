@@ -14,7 +14,7 @@
     "manualpoints": "https://services6.arcgis.com/QUg4M9ZDNdUHdQcy/arcgis/rest/services/test_inficon/FeatureServer/0",
     "manualbuffer": "https://services6.arcgis.com/QUg4M9ZDNdUHdQcy/arcgis/rest/services/test_inficon_buffer/FeatureServer/8"
   },
-  "Inspection Type": "SnifferDrone",
+  "Inspection Type": "Inficon",
   "Default Buffer Radius": 15,
   "dataBaseName": "web_app_db.sqlite"
 }
