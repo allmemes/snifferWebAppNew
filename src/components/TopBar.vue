@@ -20,7 +20,7 @@
             <el-button slot="trigger" size="medium" type="primary">Select files</el-button>
             <el-button style="margin-left: 10px;" size="medium" type="success" @click="insertLayers">Add to current map</el-button>
           </el-upload>
-          <!-- buffer table -->
+          <!-- buffer table, which allows the user to input buffer distance, whenever a csv is uploaded -->
           <el-table
             v-if="bufferList.length !== 0"
             empty-text="..."
@@ -91,6 +91,7 @@ export default {
       // visible controls
       addVisible: false,
       resultVisible: false,
+      // binded list variable for those two collapses that indicate which collapses are "open" in default.
       collapse1: ['1', '2'],
       collapse2: ['1', '2'],
       title: undefined,
@@ -105,16 +106,42 @@ export default {
 
       // uploaded files.
       bufferList: [],
+      // set used for checking duplicated uploading files.
       fileNames: new Set(),
       parentFileRecorder: this.$parent.fileRecorder,
      }
   },
 
   methods: {
+    /**
+    * This function is to update the buffer distance at the corresponding index inside the buffer list
+    * The buffer list will be turned into string and passed to the back end later. 
+    * @param scope reference to the row inside the buffer table, scope.$index will give the index of the buffer
+    * distance that the user is modifying. 
+    * @return null
+    */
     updateBuffer(scope) {
       this.bufferList[scope.$index] = scope.row;
     },
 
+
+    /**
+    * This function is to listen to the csv uploading event, ie, whenever the user is uploading a csv that will be sent to 
+    * the back end for processing. 
+    * 1, it will first check if the first character inside the csv data itself is different from the current inspection type,
+    * if different, then abort this uploading and report the error.
+    * 2, if the csv type is correponding to the current insepction type, it will keep checking if the csv name is present in
+    * the csv name tracker keys. If exists, it means this specific csv has already gone through the process of being sent to
+    * the back end and rerender at the front end. This layer is probably displaying itself in the map now, thus reproting
+    * error and abort the uploading.
+    * 3, if the csv name is not inside the csv name tracker, keep checking if this csv name has already been uploaded into the ui.
+    * If already exists, abort the uploading and report the error. This process is different from above in that it is checking
+    * whether you add the same file through file explorer.
+    * 4, if nothing goes wrong, add the csv file to the uploading list and add the csv name to the duplicated file name set.
+    * @param file the file that is being uploaded, contains names attribute, .raw will give its data.
+    * @param fileList the entire list of files being uploaded.
+    * @return null
+    */
     addFile(file, fileList) {
       // clean file name nad type check
       debugger;
@@ -164,6 +191,44 @@ export default {
       }
     },
 
+
+    /**
+    * This function is called when user click on the add to current map button.
+    * 1, it will first start up the loading screen on the map, and then it prepares the formData that
+    * will be used to communicate with the back end.
+    * 2, information about inspection type, and buffer list will be added to the form. 
+    * 3, loop through the uploaded list, add their csv name as key, file themselves as the value. 
+    * form data strcuture: 
+    * {
+        "bufferText": "bufferDistance1, bufferDistance2.....",
+        "task": "S" for sniffer drone task, or "I" for inficon task,
+        "csv name1": csv file1,
+        "csv name2": csv file2.... 
+        (The number of csv files are the same as the number of buffer distance in the bufferText)
+       }
+      4, after receiving the response from the back end, it will load the data based on the json structure: 
+          {
+            tableName1: {
+                dataName1: geojson1,
+                dataName2: geojson2 .... 
+                },
+            tableName2: {
+                dataName3: geojson3....
+            }
+          }. When loading the data, it will create the geojson layer and push the layers into the layer list
+          that is used to be shown in the table content to the left. Also, their add to map function will be
+          called to show them on the map.
+      5, later, since now whatever layers that are showing up now suggest that they have been officially added
+      to the map, and their csv name will be added to the csv name tracker, and their values will be added up
+      to 3 or 2 based on whether peaks are present or not. 
+      6, when peaks are not present (this can be told by checking if there is a case where the layer name (key)
+      is passed back, but with no geojson information as value). If this is the case, set up a string variable
+      to record all the csv names who has no peaks data.
+      7, if some csv has no peaks, show their information, remove the loading screen and reset the visibility
+      controls.
+    * @param null
+    * @return null
+    */
     insertLayers() {
       // ui control
       this.$parent.loading = true;
@@ -236,18 +301,73 @@ export default {
       });
     },
 
+
+    /**
+    * This function is clear all uploaded files, filenames, and buffer list to empty whenever user click on the
+    * x mark to close the appending dialog.
+    * @param null
+    * @return null
+    */
     clearAddedData() {
       this.$refs.upload.clearFiles();
       this.fileNames.clear();
       this.bufferList.length = 0;
     },
 
+
+    /**
+    * This function is called whenever user remove one single file from the uploading file list.
+    * it will remove that file based on the index, remove the bufferdistance at the corresponding
+    * index inside the buffer list, and remove the name from the name set used for checking the 
+    * duplicated files.
+    * @param file the file that is being uploaded, contains names attribute, .raw will give its data.
+    * @param fileList the entire list of files being uploaded.
+    * @return null
+    */
     removeFile(file, fileList) {
       var position = fileList.indexOf(file);
       this.bufferList.splice(position, 1);
       this.fileNames.delete(file.name);
     },
 
+
+    /**
+    * This function is called when user click on the upload to agol button.
+    * 1, it will first restart the loading screen, prepare the form data similar to the buffer function.
+    * 2, then it will loop through current APPENDABLE layers, this mainly refers to the geojson layers, 
+    * since only they have the appendable attributes. 
+    * 3, if there is no appendable layers, report the error.
+    * 4, if there is, add username, password, inspection type, and other basic information into the form
+    * 5, based on the inspection type, add corresponding target layer urls into the form.
+    * 6, send form through fetch api to the back end. form structure:
+    *   form structure for the sniffer drone task
+        {
+            "userName": xxxxx,
+            "passWord": xxxxx,
+            "sourceLayers": "csvlayer1, csvLayer2, csvLayer3...." (follow the format of csvname + '-type'),
+            "task": "S",
+            "bufferUrl": xxxxxx,
+            "peaksUrl": xxxxx,
+            "pointsUrl": xxxx
+        }
+        form structure for inficon task:
+        {
+            "userName": xxxxx,
+            "passWord": xxxxx,
+            "sourceLayers": "csvlayer1, csvLayer2, csvLayer3...." (follow the format of csvname + '-type'),
+            "task": "I",
+            "inficonPoints": xxxxxx,
+            "inficonBuffer": xxxxx
+        }
+      7, when response is passed back, receive the response and render the result through v-for syntax.
+      response structure:
+      {
+        "task": "SnifferDrone" or "Inficon",
+        six lists that indicate the appending status.
+      }
+    * @param null
+    * @return null
+    */
     append()
     {
       debugger;

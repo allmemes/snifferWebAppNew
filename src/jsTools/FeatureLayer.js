@@ -1,5 +1,15 @@
+/** Modified esri feature layer object.
+ * contains add, remove, show, and hide functions.
+ * For this object, show and hide are actually reusing the add and remove function from the normal leaflet tilelayer object
+ */
+
 export default class FeatureLayer
 {
+  /** constructor to create the feature layer, with default visible to be true. 
+   *  the actual layerObject is a reference to the leaflet geojson object.
+   *  the name attribute is obtained based on the url.
+   *  type is a string that is used to distinguish between feature layer and tile layer.
+   */
   constructor(inputObject, type)
   {
     this.name = inputObject.options.url.split("/").at(-4);

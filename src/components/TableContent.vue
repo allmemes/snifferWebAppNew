@@ -57,6 +57,12 @@ export default {
   },
 
   methods: {
+    /**
+    * This function is to make each layer to be focused onto by double click, if there is no geojson attribute for the layer
+    * which means they are mostly tile layer and feature layer, then they will be bring to the front.
+    * @param row each row inside the tableData is a reference to the layer itself, which is geojson layer, tile layer, or feature layer.
+    * @return null
+    */
     recenter(row) {
       if (row.center)
       {
@@ -68,6 +74,13 @@ export default {
       }
     },
 
+
+    /**
+    * This function is called on every layer to show or hide themselves, which is by calling the show and hide function
+    * for each layer object. 
+    * @param row each row inside the tableData is a reference to the layer itself, which is geojson layer, tile layer, or feature layer.
+    * @return null
+    */
     showLayer(row) {
       if (row.visible)
       {
@@ -79,11 +92,29 @@ export default {
       }
     },
 
+
+    /**
+    * This function is to make the delete confirmation dialog appear, whenever a layer is about to be deleted.
+    * @param index the int index that indicates among all the layers, the layer at which index is being deleted.
+    * @return null
+    */
     handleDelete(index) {
       this.deleteIndex = index;
       this.deleteVisible = true;
     },
 
+  
+    /**
+    * This function is called on every layer to delete themselves from the map. If the layer being delete is geojson layer, then
+    * it will also communicate with the back end to delete their geojson data from the database. For other layers, they are just
+    * being removed from the map.
+    * This is the function following the function above, where the deleteIndex is palying the role of indicating which layer to 
+    * deleted.
+    * Also, when deleting the layers, the csv name tracker will be used again, it will check whether all three or two layers
+    * created from one csv has been deleted all or not. If the cout is reduced to 0, then delete the key value pairs.
+    * @param null
+    * @return null
+    */
     deleteLayer()
     {
       this.deleteVisible = false;

@@ -1,7 +1,16 @@
 import L from 'leaflet'
 
+/** Modified esri geojson layer object.
+ * contains add, remove, show, and hide functions.
+ * show and hide functions are achieved by modifying the opacity.
+ */
+
 export default class GeoJsonLayer
 {
+  /** constructor to create the geojson layer, with default visible to be true, appendable to be true
+   *  center attribute is obtained by finding the first point's coordinate from the geojson attribute.
+   *  the actual layerObject is a reference to the leaflet geojson object.
+   */
   constructor(name, inputObject, DBtable)
   {
     this.name = name;
@@ -25,7 +34,7 @@ export default class GeoJsonLayer
       center.push(inputObject.coordinates[0][0]);
     }
     this.center = center;
-
+    // create the general structure of a geojson.
     var geoJsonStruct = {
       "type": "FeatureCollection",
       "features": [{"type": "Feature", "properties": {}}]};
@@ -40,6 +49,9 @@ export default class GeoJsonLayer
   }
 
   removeFromMap(parentComponent) {
+    /** delete function will first calling leaflet remove function to remove this layer from the map.
+     * then it will call the delete api to the back end, reporting success status accoordingly.
+     */
     this.layerObject.remove();
     fetch("http://127.0.0.1:5000/delete/" + this.DBtable + "/" + this.name, { method: "delete" })
       .then(response => response.json())
